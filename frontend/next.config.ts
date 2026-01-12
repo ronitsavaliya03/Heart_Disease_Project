@@ -5,7 +5,7 @@ const nextConfig = {
       {
         source: '/api/:path*',
         // REPLACE THIS URL with your actual Render URL
-        destination: 'https://cardio-backend.onrender.com/api/:path*', 
+        destination: 'https://cardio-backend-so0r.onrender.com/api/:path*', 
       },
     ];
   },
