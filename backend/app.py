@@ -1,3 +1,4 @@
+import sys
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 import pandas as pd
@@ -16,26 +17,41 @@ DATA_PATH = os.path.join(BASE_DIR, '../data/cardio_train_clean.csv')
 
 # --- DEFINITION: Custom Class (Must match your notebook) ---
 class LogisticRegressionFromScratch:
-    def __init__(self, learning_rate=0.01, num_iterations=1000):
+    def __init__(self, learning_rate=0.01, n_iterations=1000):
+        self.learning_rate = learning_rate
+        self.n_iterations = n_iterations
         self.weights = None
         self.bias = None
-    
-    def _sigmoid(self, z):
-        # Clip z to prevent Overflow Error (The fix for your crash!)
-        z = np.clip(z, -250, 250) 
+
+    def sigmoid(self, z):
         return 1 / (1 + np.exp(-z))
-    
+
+    def fit(self, X, y):
+        n_samples, n_features = X.shape
+        self.weights = np.zeros(n_features)
+        self.bias = 0
+
+        for _ in range(self.n_iterations):
+            linear_model = np.dot(X, self.weights) + self.bias
+            y_predicted = self.sigmoid(linear_model)
+
+            dw = (1 / n_samples) * np.dot(X.T, (y_predicted - y))
+            db = (1 / n_samples) * np.sum(y_predicted - y)
+
+            self.weights -= self.learning_rate * dw
+            self.bias -= self.learning_rate * db
+
     def predict(self, X):
         linear_model = np.dot(X, self.weights) + self.bias
-        y_predicted = self._sigmoid(linear_model)
-        return [1 if i > 0.5 else 0 for i in y_predicted]
+        y_predicted = self.sigmoid(linear_model)
+        y_predicted_cls = [1 if i > 0.5 else 0 for i in y_predicted]
+        return np.array(y_predicted_cls)
 
-    # Added this so the API doesn't crash when asking for probability
     def predict_proba(self, X):
         linear_model = np.dot(X, self.weights) + self.bias
-        y_predicted = self._sigmoid(linear_model)
-        # Return format matching sklearn: [[prob_0, prob_1]]
-        return [[1-p, p] for p in y_predicted]
+        return self.sigmoid(linear_model)
+
+sys.modules['__main__'].LogisticRegressionFromScratch = LogisticRegressionFromScratch
 
 # ==========================================
 # 2. SCALING VALUES (CRITICAL FOR CUSTOM MODEL)
