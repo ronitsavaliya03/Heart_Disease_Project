@@ -2,5 +2,6 @@ Flask
 flask-cors
 numpy
 scikit-learn
-xgboost
 gunicorn
+pandas
+xgboost
